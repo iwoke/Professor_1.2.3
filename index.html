@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trener Tabliczki Mnozenia 10x10</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app">
+    <h1>Trener Tabliczki Mnozenia 10x10</h1>
+    <p class="subtitle">Wybierz dzialania z macierzy: cale wiersze, kolumny albo pojedyncze pola.</p>
+
+    <section class="card">
+      <h2>Wybierz dzialania</h2>
+      <p class="small">Mozesz przelaczac cale wiersze, kolumny albo pojedyncze komorki.</p>
+      <div class="selector-actions">
+        <button id="clearSelectionBtn">Wyczysc wszystko</button>
+        <button id="selectAllBtn">Zaznacz wszystko</button>
+      </div>
+      <div class="matrix-wrap">
+        <table id="matrixTable" class="matrix"></table>
+      </div>
+      <p id="selectionInfo" class="small"></p>
+      <div class="timer-config">
+        <label for="timePerQuestionInput">Czas na jedno dzialanie (sekundy):</label>
+        <input id="timePerQuestionInput" type="number" min="3" max="120" value="12" />
+      </div>
+      <button id="startButton" class="primary">Start</button>
+      <p id="setupError" class="error"></p>
+    </section>
+
+    <section id="quizSection" class="card hidden">
+      <h2 id="roundTitle">Runda 1</h2>
+      <p id="progressText">Pytanie 1 / 1</p>
+      <p id="timerText" class="timer"></p>
+      <p id="questionText" class="question">1 x 1 = ?</p>
+      <div class="answer-row">
+        <input id="answerInput" type="number" inputmode="numeric" autocomplete="off" />
+        <button id="submitButton">Sprawdz</button>
+      </div>
+      <p id="feedbackText" class="feedback"></p>
+    </section>
+
+    <section id="summarySection" class="card hidden">
+      <h2 id="summaryTitle">Podsumowanie rundy</h2>
+      <p id="summaryStats"></p>
+      <div id="wrongListWrap" class="hidden">
+        <h3>Powtorz w nastepnej rundzie:</h3>
+        <ul id="wrongList"></ul>
+      </div>
+      <div class="summary-actions">
+        <button id="nextRoundButton" class="primary hidden">Nastepna runda</button>
+        <button id="restartButton">Nowa sesja</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

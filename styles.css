@@ -1,0 +1,172 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f3f6ff;
+  color: #1b2233;
+}
+
+.app {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 22px 14px 38px;
+}
+
+h1 {
+  margin: 0 0 6px;
+}
+
+.subtitle {
+  margin: 0 0 16px;
+  color: #49526b;
+}
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 6px 18px rgba(8, 26, 64, 0.08);
+}
+
+.small {
+  color: #4c5672;
+  margin-top: 0;
+}
+
+.selector-actions,
+.summary-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.timer-config {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.timer-config label {
+  font-weight: 700;
+}
+
+.matrix-wrap {
+  overflow-x: auto;
+}
+
+.matrix {
+  border-collapse: collapse;
+  margin-bottom: 10px;
+  user-select: none;
+}
+
+.matrix th,
+.matrix td {
+  border: 1px solid #cfd7ec;
+  text-align: center;
+  min-width: 50px;
+  height: 40px;
+  padding: 4px;
+}
+
+.corner {
+  background: #f3f6ff;
+  font-weight: 700;
+}
+
+.row-header,
+.col-header {
+  background: #edf2ff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.row-header:hover,
+.col-header:hover {
+  background: #dfe8ff;
+}
+
+.cell {
+  cursor: pointer;
+  background: #fff;
+}
+
+.cell:hover {
+  background: #f5f8ff;
+}
+
+.selected {
+  background: #3f69ff !important;
+  color: #fff;
+  font-weight: 700;
+}
+
+input[type="number"] {
+  width: 100%;
+  max-width: 180px;
+  padding: 10px;
+  border: 1px solid #c9d3ee;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.answer-row {
+  display: flex;
+  gap: 10px;
+}
+
+button {
+  border: 1px solid #8b99bf;
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: #f8faff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #eef3ff;
+}
+
+.primary {
+  background: #3f69ff;
+  border-color: #3f69ff;
+  color: #fff;
+}
+
+.primary:hover {
+  background: #3559d8;
+}
+
+.question {
+  margin: 8px 0 14px;
+  font-size: 2rem;
+}
+
+.feedback {
+  min-height: 1.3rem;
+  font-weight: 700;
+}
+
+.timer {
+  font-weight: 700;
+  color: #2e4dc1;
+}
+
+.correct {
+  color: #12772a;
+}
+
+.wrong,
+.error {
+  color: #b32424;
+}
+
+.hidden {
+  display: none;
+}
