@@ -23,6 +23,7 @@ const wrongListWrap = document.getElementById("wrongListWrap");
 const wrongList = document.getElementById("wrongList");
 const nextRoundButton = document.getElementById("nextRoundButton");
 const restartButton = document.getElementById("restartButton");
+const answerForm = document.getElementById("answerForm");
 
 const selectedSet = new Set();
 
@@ -36,6 +37,7 @@ let secondsLeft = 0;
 let countdownInterval = null;
 let transitionTimeout = null;
 let questionLocked = false;
+let autoSubmitTimeout = null;
 
 let audioContext = null;
 let polishVoice = null;
@@ -143,6 +145,54 @@ function playFeedback(toneKind, spokenText) {
 
 function multiplyLabel(a, b) {
   return `${a} × ${b}`;
+}
+
+function getCurrentExpectedAnswer() {
+  const q = activeQuestions[currentIndex];
+  return q.a * q.b;
+}
+
+function digitsOnly(value) {
+  return value.replace(/\D/g, "");
+}
+
+function clearAutoSubmitTimeout() {
+  if (autoSubmitTimeout) {
+    window.clearTimeout(autoSubmitTimeout);
+    autoSubmitTimeout = null;
+  }
+}
+
+function focusAnswerInput() {
+  window.setTimeout(() => {
+    answerInput.focus({ preventScroll: false });
+    answerInput.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, 120);
+}
+
+function maybeAutoSubmitAnswer() {
+  if (questionLocked) return;
+
+  const raw = digitsOnly(answerInput.value);
+  if (!raw) return;
+
+  const expected = getCurrentExpectedAnswer();
+  const expectedLen = String(expected).length;
+  if (raw.length < expectedLen) return;
+
+  clearAutoSubmitTimeout();
+  autoSubmitTimeout = window.setTimeout(() => {
+    autoSubmitTimeout = null;
+    submitAnswer();
+  }, 150);
+}
+
+function handleAnswerInput() {
+  const cleaned = digitsOnly(answerInput.value);
+  if (answerInput.value !== cleaned) {
+    answerInput.value = cleaned;
+  }
+  maybeAutoSubmitAnswer();
 }
 
 function keyFor(a, b) {
@@ -284,6 +334,7 @@ function clearRunningTimers() {
     window.clearTimeout(transitionTimeout);
     transitionTimeout = null;
   }
+  clearAutoSubmitTimeout();
 }
 
 function updateTimerText() {
@@ -362,10 +413,11 @@ function renderCurrentQuestion() {
   progressText.textContent = `Pytanie ${currentIndex + 1} / ${activeQuestions.length}`;
   questionText.textContent = `${multiplyLabel(q.a, q.b)} = ?`;
   answerInput.value = "";
+  answerInput.maxLength = String(q.a * q.b).length;
   feedbackText.textContent = "";
   feedbackText.className = "feedback";
   startQuestionCountdown();
-  answerInput.focus();
+  focusAnswerInput();
 }
 
 function showSummary() {
@@ -405,8 +457,9 @@ function showSummary() {
 
 function submitAnswer() {
   if (questionLocked) return;
+  clearAutoSubmitTimeout();
 
-  const raw = answerInput.value.trim();
+  const raw = digitsOnly(answerInput.value.trim());
   if (raw === "") {
     feedbackText.textContent = "Najpierw wpisz odpowiedź.";
     feedbackText.className = "feedback wrong";
@@ -480,10 +533,11 @@ clearSelectionBtn.addEventListener("click", () => {
 });
 
 startButton.addEventListener("click", startFromSelection);
-submitButton.addEventListener("click", submitAnswer);
-answerInput.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") submitAnswer();
+answerForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  submitAnswer();
 });
+answerInput.addEventListener("input", handleAnswerInput);
 
 soundEnabledInput.addEventListener("change", () => {
   if (!soundEnabledInput.checked) {

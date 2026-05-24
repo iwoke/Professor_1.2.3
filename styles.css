@@ -7,21 +7,33 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   background: #f3f6ff;
   color: #1b2233;
+  -webkit-text-size-adjust: 100%;
 }
 
 .app {
   max-width: 900px;
   margin: 0 auto;
-  padding: 22px 14px 38px;
+  padding: 22px 14px calc(38px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(14px, env(safe-area-inset-left, 0px));
+  padding-right: max(14px, env(safe-area-inset-right, 0px));
 }
 
 h1 {
   margin: 0 0 6px;
+  font-size: clamp(1.25rem, 4.5vw, 1.75rem);
+  line-height: 1.2;
+}
+
+h2 {
+  margin: 0 0 8px;
+  font-size: 1.15rem;
 }
 
 .subtitle {
   margin: 0 0 16px;
   color: #49526b;
+  font-size: 0.95rem;
+  line-height: 1.4;
 }
 
 .card {
@@ -35,17 +47,26 @@ h1 {
 .small {
   color: #4c5672;
   margin-top: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
 }
 
 .selector-actions,
 .summary-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 10px;
 }
 
+.selector-actions button,
+.summary-actions button {
+  flex: 1 1 140px;
+}
+
 .timer-config {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   align-items: center;
   margin-bottom: 10px;
@@ -54,39 +75,50 @@ h1 {
 .sound-toggle {
   display: flex;
   gap: 8px;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 12px;
   font-weight: 600;
   cursor: pointer;
+  line-height: 1.35;
 }
 
 .sound-toggle input {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .timer-config label {
   font-weight: 700;
+  flex: 1 1 200px;
 }
 
 .matrix-wrap {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -4px;
+  padding: 4px;
 }
 
 .matrix {
   border-collapse: collapse;
   margin-bottom: 10px;
   user-select: none;
+  width: 100%;
+  min-width: 320px;
 }
 
 .matrix th,
 .matrix td {
   border: 1px solid #cfd7ec;
   text-align: center;
-  min-width: 50px;
-  height: 40px;
-  padding: 4px;
+  min-width: clamp(30px, 8.5vw, 50px);
+  height: clamp(34px, 9vw, 40px);
+  padding: 2px;
+  font-size: clamp(0.7rem, 2.8vw, 0.9rem);
+  line-height: 1.1;
 }
 
 .corner {
@@ -99,6 +131,7 @@ h1 {
   background: #edf2ff;
   font-weight: 700;
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 .row-header:hover,
@@ -109,6 +142,7 @@ h1 {
 .cell {
   cursor: pointer;
   background: #fff;
+  touch-action: manipulation;
 }
 
 .cell:hover {
@@ -121,27 +155,95 @@ h1 {
   font-weight: 700;
 }
 
-input[type="number"] {
-  width: 100%;
-  max-width: 180px;
-  padding: 10px;
+input[type="number"],
+input[type="text"]#answerInput,
+#timePerQuestionInput {
+  padding: 12px 14px;
   border: 1px solid #c9d3ee;
-  border-radius: 8px;
-  font-size: 1rem;
+  border-radius: 10px;
+  font-size: 16px;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
-.answer-row {
+#timePerQuestionInput {
+  width: 100%;
+  max-width: 120px;
+}
+
+.quiz-header {
   display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 16px;
+  margin-bottom: 4px;
+}
+
+.quiz-header h2 {
+  margin: 0;
+  flex: 1 1 auto;
+}
+
+.quiz-meta {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #49526b;
+}
+
+.answer-form {
+  display: flex;
+  flex-direction: column;
   gap: 10px;
+  margin-bottom: 4px;
+}
+
+.answer-label {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+#answerInput {
+  width: 100%;
+  max-width: none;
+  font-size: 1.75rem;
+  font-weight: 700;
+  text-align: center;
+  min-height: 52px;
+  padding: 14px;
+  border: 2px solid #3f69ff;
+  border-radius: 12px;
+  background: #f8faff;
+}
+
+#answerInput:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(63, 105, 255, 0.25);
+}
+
+.answer-hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #4c5672;
+  text-align: center;
+  line-height: 1.35;
+}
+
+#submitButton {
+  width: 100%;
+  min-height: 48px;
+  font-size: 1rem;
+  touch-action: manipulation;
 }
 
 button {
   border: 1px solid #8b99bf;
-  border-radius: 8px;
-  padding: 10px 14px;
+  border-radius: 10px;
+  padding: 12px 16px;
   background: #f8faff;
   font-weight: 700;
   cursor: pointer;
+  touch-action: manipulation;
+  min-height: 44px;
 }
 
 button:hover {
@@ -152,20 +254,31 @@ button:hover {
   background: #3f69ff;
   border-color: #3f69ff;
   color: #fff;
+  width: 100%;
+  min-height: 48px;
+  font-size: 1.05rem;
 }
 
 .primary:hover {
   background: #3559d8;
 }
 
+#startButton {
+  margin-top: 4px;
+}
+
 .question {
-  margin: 8px 0 14px;
-  font-size: 2rem;
+  margin: 12px 0 16px;
+  font-size: clamp(1.75rem, 8vw, 2.25rem);
+  text-align: center;
+  font-weight: 700;
 }
 
 .feedback {
   min-height: 1.3rem;
   font-weight: 700;
+  text-align: center;
+  font-size: 1rem;
 }
 
 .timer {
@@ -184,4 +297,76 @@ button:hover {
 
 .hidden {
   display: none;
+}
+
+#wrongList {
+  padding-left: 1.25rem;
+  line-height: 1.6;
+}
+
+@media (min-width: 520px) {
+  .answer-form {
+    max-width: 360px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  #submitButton {
+    width: auto;
+    align-self: center;
+    min-width: 160px;
+  }
+
+  .primary {
+    width: auto;
+    min-width: 180px;
+  }
+
+  #startButton {
+    width: auto;
+  }
+
+  .selector-actions button {
+    flex: 0 1 auto;
+  }
+}
+
+@media (max-width: 519px) {
+  .app {
+    padding-top: 16px;
+  }
+
+  .card {
+    padding: 14px 12px;
+  }
+
+  .subtitle {
+    margin-bottom: 12px;
+  }
+
+  .selector-actions {
+    flex-direction: column;
+  }
+
+  .selector-actions button,
+  .summary-actions button {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .timer-config {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #timePerQuestionInput {
+    max-width: none;
+  }
+
+  #submitButton {
+    background: #eef3ff;
+    border-color: #8b99bf;
+    color: #1b2233;
+    font-size: 0.95rem;
+  }
 }
