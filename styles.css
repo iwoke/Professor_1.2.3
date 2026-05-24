@@ -51,6 +51,21 @@ h1 {
   margin-bottom: 10px;
 }
 
+.sound-toggle {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sound-toggle input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
 .timer-config label {
   font-weight: 700;
 }

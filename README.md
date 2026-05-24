@@ -1,18 +1,18 @@
 # Kids Multiplication Trainer
 
-Prosta aplikacja w przegladarce do nauki tabliczki mnozenia 10x10.
+Prosta aplikacja w przeglądarce do nauki tabliczki mnożenia 10×10.
 
 ## Features
 
-- Wybieranie dzialan bezposrednio z macierzy 10x10
-- Zaznaczanie calych wierszy, kolumn albo pojedynczych pol
-- Konfigurowany licznik czasu na kazde dzialanie
-- Natychmiastowa informacja po odpowiedzi
-- Podsumowanie rundy z lista bledow
-- Nastepna runda zawiera tylko bledne dzialania
-- Powtarzanie rund az do kompletu poprawnych odpowiedzi
+- Wybieranie działań bezpośrednio z macierzy 10×10
+- Zaznaczanie całych wierszy, kolumn albo pojedynczych pól
+- Konfigurowany licznik czasu na każde działanie
+- Natychmiastowa informacja po odpowiedzi (tekst + dźwięk i komunikat głosowy po polsku)
+- Podsumowanie rundy z listą błędów
+- Następna runda zawiera tylko błędne działania
+- Powtarzanie rund aż do kompletu poprawnych odpowiedzi
 
 ## Run
 
-Open `index.html` in a browser.
-Otworz `index.html` w przegladarce.
+Open `index.html` in a browser.  
+Otwórz `index.html` w przeglądarce (lub uruchom lokalny serwer HTTP).

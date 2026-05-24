@@ -5,6 +5,7 @@ const selectionInfo = document.getElementById("selectionInfo");
 const startButton = document.getElementById("startButton");
 const setupError = document.getElementById("setupError");
 const timePerQuestionInput = document.getElementById("timePerQuestionInput");
+const soundEnabledInput = document.getElementById("soundEnabledInput");
 
 const quizSection = document.getElementById("quizSection");
 const roundTitle = document.getElementById("roundTitle");
@@ -35,6 +36,114 @@ let secondsLeft = 0;
 let countdownInterval = null;
 let transitionTimeout = null;
 let questionLocked = false;
+
+let audioContext = null;
+let polishVoice = null;
+
+function isSoundOn() {
+  return soundEnabledInput.checked;
+}
+
+function getAudioContext() {
+  if (!audioContext) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (Ctx) audioContext = new Ctx();
+  }
+  return audioContext;
+}
+
+function primeAudio() {
+  const ctx = getAudioContext();
+  if (ctx && ctx.state === "suspended") {
+    ctx.resume();
+  }
+  if (window.speechSynthesis) {
+    loadPolishVoice();
+  }
+}
+
+function loadPolishVoice() {
+  if (!window.speechSynthesis) return;
+  const voices = speechSynthesis.getVoices();
+  polishVoice =
+    voices.find((v) => v.lang === "pl-PL") ||
+    voices.find((v) => v.lang.startsWith("pl")) ||
+    null;
+}
+
+if (window.speechSynthesis) {
+  speechSynthesis.addEventListener("voiceschanged", loadPolishVoice);
+  loadPolishVoice();
+}
+
+function playTone(frequency, durationSec, type = "sine", volume = 0.14) {
+  if (!isSoundOn()) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  if (ctx.state === "suspended") ctx.resume();
+
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.value = frequency;
+  gain.gain.setValueAtTime(volume, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + durationSec);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start();
+  osc.stop(ctx.currentTime + durationSec);
+}
+
+function playSuccessTone() {
+  playTone(523.25, 0.1);
+  window.setTimeout(() => playTone(659.25, 0.14), 90);
+}
+
+function playErrorTone() {
+  playTone(196, 0.22, "triangle", 0.16);
+  window.setTimeout(() => playTone(147, 0.28, "triangle", 0.14), 140);
+}
+
+function playHintTone() {
+  playTone(440, 0.08, "sine", 0.1);
+}
+
+function stopSpeech() {
+  if (window.speechSynthesis) {
+    speechSynthesis.cancel();
+  }
+}
+
+function speakPolish(text) {
+  if (!isSoundOn() || !text || !window.speechSynthesis) return;
+
+  stopSpeech();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "pl-PL";
+  utterance.rate = 0.92;
+  utterance.pitch = 1;
+  if (polishVoice) utterance.voice = polishVoice;
+  speechSynthesis.speak(utterance);
+}
+
+function playFeedback(toneKind, spokenText) {
+  if (!isSoundOn()) return;
+
+  primeAudio();
+
+  if (toneKind === "correct") playSuccessTone();
+  else if (toneKind === "wrong" || toneKind === "timeout") playErrorTone();
+  else if (toneKind === "hint") playHintTone();
+
+  if (spokenText) {
+    const delay = toneKind === "correct" ? 60 : 180;
+    window.setTimeout(() => speakPolish(spokenText), delay);
+  }
+}
+
+function multiplyLabel(a, b) {
+  return `${a} × ${b}`;
+}
 
 function keyFor(a, b) {
   return `${a}-${b}`;
@@ -108,14 +217,14 @@ function paintSelection() {
     header.classList.toggle("selected", columnFullySelected(col));
   }
 
-  selectionInfo.textContent = `Zaznaczone dzialania: ${selectedSet.size}`;
+  selectionInfo.textContent = `Zaznaczone działania: ${selectedSet.size}`;
 }
 
 function buildMatrix() {
   const headerRow = document.createElement("tr");
   const corner = document.createElement("th");
   corner.className = "corner";
-  corner.textContent = "x";
+  corner.textContent = "×";
   headerRow.appendChild(corner);
 
   for (let col = 1; col <= 10; col += 1) {
@@ -148,7 +257,7 @@ function buildMatrix() {
       td.className = "cell";
       td.dataset.a = String(row);
       td.dataset.b = String(col);
-      td.textContent = `${row}x${col}`;
+      td.textContent = `${row}×${col}`;
       td.addEventListener("click", () => toggleCell(row, col));
       tr.appendChild(td);
     }
@@ -178,7 +287,7 @@ function clearRunningTimers() {
 }
 
 function updateTimerText() {
-  timerText.textContent = `Pozostaly czas: ${secondsLeft}s`;
+  timerText.textContent = `Pozostały czas: ${secondsLeft} s`;
 }
 
 function handleQuestionTimeout() {
@@ -186,9 +295,14 @@ function handleQuestionTimeout() {
   questionLocked = true;
 
   const q = activeQuestions[currentIndex];
+  const answer = q.a * q.b;
   wrongQuestions.push(q);
-  feedbackText.textContent = `Koniec czasu. Poprawna odpowiedz: ${q.a * q.b}`;
+  feedbackText.textContent = `Koniec czasu. Poprawna odpowiedź: ${answer}`;
   feedbackText.className = "feedback wrong";
+  playFeedback(
+    "timeout",
+    `Koniec czasu. Poprawna odpowiedź to ${answer}.`
+  );
   moveToNextStep();
 }
 
@@ -220,6 +334,7 @@ function moveToNextStep() {
 
 function startRound(questions) {
   clearRunningTimers();
+  stopSpeech();
   roundNumber += 1;
   activeQuestions = [...questions];
   shuffle(activeQuestions);
@@ -232,6 +347,12 @@ function startRound(questions) {
   summarySection.classList.add("hidden");
   quizSection.classList.remove("hidden");
   renderCurrentQuestion();
+
+  if (roundNumber === 1) {
+    playFeedback(null, "Zaczynamy. Powodzenia!");
+  } else {
+    playFeedback(null, "Kolejna runda.");
+  }
 }
 
 function renderCurrentQuestion() {
@@ -239,7 +360,7 @@ function renderCurrentQuestion() {
   questionLocked = false;
   roundTitle.textContent = `Runda ${roundNumber}`;
   progressText.textContent = `Pytanie ${currentIndex + 1} / ${activeQuestions.length}`;
-  questionText.textContent = `${q.a} x ${q.b} = ?`;
+  questionText.textContent = `${multiplyLabel(q.a, q.b)} = ?`;
   answerInput.value = "";
   feedbackText.textContent = "";
   feedbackText.className = "feedback";
@@ -255,21 +376,30 @@ function showSummary() {
   quizSection.classList.add("hidden");
 
   if (wrongCount === 0) {
-    summaryTitle.textContent = `Super! Wszystko poprawnie po ${roundNumber} rundach.`;
+    summaryTitle.textContent = `Świetnie! Wszystko poprawnie po ${roundNumber} rundach.`;
     summaryStats.textContent = `Idealny wynik: ${correctCount}/${total}.`;
     wrongListWrap.classList.add("hidden");
     nextRoundButton.classList.add("hidden");
+    playFeedback(
+      "correct",
+      `Świetnie! Wszystkie odpowiedzi poprawne. Wynik ${correctCount} na ${total}.`
+    );
   } else {
     summaryTitle.textContent = `Podsumowanie rundy ${roundNumber}`;
-    summaryStats.textContent = `Wynik: ${correctCount}/${total}. Bledy: ${wrongCount}.`;
+    summaryStats.textContent = `Wynik: ${correctCount}/${total}. Błędy: ${wrongCount}.`;
     wrongListWrap.classList.remove("hidden");
     nextRoundButton.classList.remove("hidden");
     wrongList.innerHTML = "";
     wrongQuestions.forEach((q) => {
       const li = document.createElement("li");
-      li.textContent = `${q.a} x ${q.b} = ${q.a * q.b}`;
+      li.textContent = `${multiplyLabel(q.a, q.b)} = ${q.a * q.b}`;
       wrongList.appendChild(li);
     });
+    const bledySlowo = wrongCount === 1 ? "błąd" : wrongCount < 5 ? "błędy" : "błędów";
+    playFeedback(
+      null,
+      `Koniec rundy. Masz ${wrongCount} ${bledySlowo}. Powtórz je w następnej rundzie.`
+    );
   }
 }
 
@@ -278,8 +408,9 @@ function submitAnswer() {
 
   const raw = answerInput.value.trim();
   if (raw === "") {
-    feedbackText.textContent = "Najpierw wpisz odpowiedz.";
+    feedbackText.textContent = "Najpierw wpisz odpowiedź.";
     feedbackText.className = "feedback wrong";
+    playFeedback("hint", "Najpierw wpisz odpowiedź.");
     return;
   }
 
@@ -297,24 +428,30 @@ function submitAnswer() {
     correctCount += 1;
     feedbackText.textContent = "Dobrze!";
     feedbackText.className = "feedback correct";
+    playFeedback("correct", "Dobrze!");
   } else {
     wrongQuestions.push(q);
-    feedbackText.textContent = `Zle. Poprawna odpowiedz: ${expected}`;
+    feedbackText.textContent = `Źle. Poprawna odpowiedź: ${expected}`;
     feedbackText.className = "feedback wrong";
+    playFeedback("wrong", `Źle. Poprawna odpowiedź to ${expected}.`);
   }
 
   moveToNextStep();
 }
 
 function startFromSelection() {
+  primeAudio();
+
   const parsedTime = Number(timePerQuestionInput.value);
   if (Number.isNaN(parsedTime) || parsedTime < 3 || parsedTime > 120) {
-    setupError.textContent = "Ustaw czas od 3 do 120 sekund na jedno dzialanie.";
+    setupError.textContent = "Ustaw czas od 3 do 120 sekund na jedno działanie.";
+    playFeedback("hint", "Ustaw czas od 3 do 120 sekund na jedno działanie.");
     return;
   }
 
   if (selectedSet.size === 0) {
-    setupError.textContent = "Zaznacz przynajmniej jedno dzialanie w macierzy.";
+    setupError.textContent = "Zaznacz przynajmniej jedno działanie w macierzy.";
+    playFeedback("hint", "Zaznacz przynajmniej jedno działanie w macierzy.");
     return;
   }
 
@@ -326,6 +463,7 @@ function startFromSelection() {
 }
 
 selectAllBtn.addEventListener("click", () => {
+  primeAudio();
   selectedSet.clear();
   for (let row = 1; row <= 10; row += 1) {
     for (let col = 1; col <= 10; col += 1) {
@@ -336,6 +474,7 @@ selectAllBtn.addEventListener("click", () => {
 });
 
 clearSelectionBtn.addEventListener("click", () => {
+  primeAudio();
   selectedSet.clear();
   paintSelection();
 });
@@ -346,9 +485,20 @@ answerInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") submitAnswer();
 });
 
-nextRoundButton.addEventListener("click", () => startRound(wrongQuestions));
+soundEnabledInput.addEventListener("change", () => {
+  if (!soundEnabledInput.checked) {
+    stopSpeech();
+  }
+});
+
+nextRoundButton.addEventListener("click", () => {
+  primeAudio();
+  startRound(wrongQuestions);
+});
+
 restartButton.addEventListener("click", () => {
   clearRunningTimers();
+  stopSpeech();
   roundNumber = 0;
   activeQuestions = [];
   currentIndex = 0;
